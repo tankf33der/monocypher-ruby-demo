@@ -10,7 +10,7 @@ module Monocypher
     puts "mike"
   end
   def self.blake2b(bytes)
-    bytes = bytes.pack('c*') if bytes.respond_to?(:pack)
+    bytes = bytes.pack('С*') if bytes.respond_to?(:pack)
     size = bytes.respond_to?(:bytesize) ? bytes.bytesize : bytes.size
     #puts bytes.bytesize
     #puts bytes.size
@@ -37,24 +37,11 @@ puts a
 =end
 
 
-ObjectSpace
-  .each_object
-  .inject(Hash.new 0) { |h,o| h[o.class] += 1; h }
-  .sort_by { |k,v| -v }
-  .take(10)
-  .each { |klass, count| puts "#{count.to_s.ljust(10)} #{klass}" }
-
-100000.times {
-s1 = Monocypher.blake2b("")
+s1 = Monocypher.blake2b("abc")
 puts s1.get_bytes(0, 64).unpack('H*')[0]
-}
+s1 = Monocypher.blake2b("The quick brown fox jumps over the lazy dog")
+puts s1.get_bytes(0, 64).unpack('H*')[0]
 
-ObjectSpace
-  .each_object
-  .inject(Hash.new 0) { |h,o| h[o.class] += 1; h }
-  .sort_by { |k,v| -v }
-  .take(10)
-  .each { |klass, count| puts "#{count.to_s.ljust(10)} #{klass}" }
 
 
 =begin
