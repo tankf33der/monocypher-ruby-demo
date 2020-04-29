@@ -1,21 +1,28 @@
 require "ffi"
 
 module Monocypher
+  class Blake2bCtx < FFI::Struct
+    layout :hash,       [:uint64, 8],
+        :input_offset,  [:uint64, 2],
+        :input,         [:uint64, 16],
+        :input_idx,     :size_t,
+        :hash_size,     :size_t
+  end
   class Blake2b
     extend FFI::Library
-    ffi_lib "libmonocypher.so"
+    ffi_lib "libmonocypher.so.3"
 
     attach_function :crypto_blake2b, [:buffer_out, :buffer_in, :size_t], :void
     attach_function :crypto_blake2b_general, [:buffer_out, :size_t, :buffer_in, :size_t, :buffer_in, :size_t], :void
 
     def self.digest(bytes)
       #bytes = bytes.pack("С*") if bytes.respond_to?(:pack)
-      #size = bytes.respond_to?(:bytesize) ? bytes.bytesize : bytes.size
+      size = bytes.respond_to?(:bytesize) ? bytes.bytesize : 0
       #size = bytes.size
       #data = FFI::MemoryPointer.new(:uint8, size)
       #data.put_bytes(0, bytes)
       result = FFI::MemoryPointer.new(:uint8, 64)
-      self.crypto_blake2b(result, bytes, bytes.bytesize)
+      self.crypto_blake2b(result, bytes, size)
       result.get_bytes(0, 64).unpack("H*")[0]
     end
     def blake2b_general(hashlen, key, bytes)
@@ -27,14 +34,19 @@ module Monocypher
       self.crypto_blake2b_general(result, hashlen, key, keysize, bytes, bytes.bytesize)
       result.get_bytes(0, hashlen).unpack("H*")[0]
     end
+
+    def initialize(hashlen=64, key=nil)
+      Blake2bCtx.new()
+    end
   end
 end
-s1 = Monocypher::Blake2b.digest("abc")
-puts s1
+puts Monocypher::Blake2b.digest("abc")
+puts Monocypher::Blake2b.digest(nil)
+puts Monocypher::Blake2b.digest("")
+ctx = Monocypher::Blake2b.new(12, "key")
+p ctx
 
 =begin
-puts Monocypher.blake2b("")
-
 s1 = Monocypher.blake2b("миша")
 puts s1
 
